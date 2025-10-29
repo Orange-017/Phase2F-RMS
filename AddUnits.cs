@@ -311,13 +311,13 @@ namespace RECOMANAGESYS
                                         unitId = Convert.ToInt32(existingUnit);
 
                                         string checkOwnerQuery = @"
-                                    SELECT COUNT(*) 
-                                    FROM HomeownerUnits hu
-                                    JOIN Residents r ON hu.ResidentID = r.ResidentID
-                                    WHERE hu.UnitID = @unitId
-                                      AND r.HomeownerID = @homeownerId
-                                      AND r.ResidencyType = 'Owner'
-                                      AND hu.IsCurrent = 1";
+                                        SELECT COUNT(*) 
+                                        FROM HomeownerUnits hu
+                                        JOIN Residents r ON hu.ResidentID = r.ResidentID
+                                        WHERE hu.UnitID = @unitId
+                                          AND r.HomeownerID = @homeownerId
+                                          AND r.ResidencyType = 'Owner'
+                                          AND hu.IsCurrent = 1";
 
                                         using (SqlCommand checkOwnerCmd = new SqlCommand(checkOwnerQuery, conn, transaction))
                                         {
@@ -336,13 +336,13 @@ namespace RECOMANAGESYS
                                         if (unitTypeText != "Apartment")
                                         {
                                             string getOldOwnerQuery = @"
-                                        SELECT r.FirstName, r.LastName
-                                        FROM HomeownerUnits hu
-                                        JOIN Residents r ON hu.ResidentID = r.ResidentID
-                                        WHERE hu.UnitID = @unitId
-                                          AND r.HomeownerID <> @homeownerId
-                                          AND r.ResidencyType = 'Owner'
-                                          AND hu.IsCurrent = 1";
+                                            SELECT r.FirstName, r.LastName
+                                            FROM HomeownerUnits hu
+                                            JOIN Residents r ON hu.ResidentID = r.ResidentID
+                                            WHERE hu.UnitID = @unitId
+                                              AND r.HomeownerID <> @homeownerId
+                                              AND r.ResidencyType = 'Owner'
+                                              AND hu.IsCurrent = 1";
 
                                             string oldOwnerName = null;
                                             using (SqlCommand getOwnerCmd = new SqlCommand(getOldOwnerQuery, conn, transaction))
@@ -359,53 +359,31 @@ namespace RECOMANAGESYS
                                                 }
                                             }
 
+                                            // --- MODIFICATION START ---
+                                            // Instead of asking for a transfer, block the registration
+                                            // if the unit is already actively owned by someone else.
                                             if (oldOwnerName != null)
                                             {
-                                                DialogResult choice = MessageBox.Show(
-                                                    $"This unit is currently owned by {oldOwnerName}.\n\n" +
-                                                    "Do you want to transfer ownership to this new owner? \n" +
-                                                    $"(This will mark {oldOwnerName} as a 'Past Owner' for this unit.)",
-                                                    "Confirm Ownership Transfer",
-                                                    MessageBoxButtons.YesNo,
-                                                    MessageBoxIcon.Question);
+                                                MessageBox.Show(
+                                                    $"This unit is already actively owned by {oldOwnerName}.\n\n" +
+                                                    "Ownership can only be assigned if the unit is inactive.",
+                                                    "Unit Already Owned",
+                                                    MessageBoxButtons.OK,
+                                                    MessageBoxIcon.Warning);
 
-                                                if (choice == DialogResult.Yes)
-                                                {
-                                                    string updateOldOwnerQuery = @"
-                                                UPDATE HomeownerUnits 
-                                                SET IsCurrent = 0, DateOfOwnershipEnd = GETDATE()
-                                                FROM HomeownerUnits hu
-                                                JOIN Residents r ON hu.ResidentID = r.ResidentID
-                                                WHERE hu.UnitID = @unitId
-                                                  AND r.ResidencyType = 'Owner'
-                                                  AND hu.IsCurrent = 1";
-
-                                                    using (SqlCommand updateCmd = new SqlCommand(updateOldOwnerQuery, conn, transaction))
-                                                    {
-                                                        updateCmd.Parameters.AddWithValue("@unitId", unitId);
-                                                        updateCmd.ExecuteNonQuery();
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    // User said NO. Cancel the operation.
-                                                    MessageBox.Show("Ownership transfer cancelled.", "Cancelled",
-                                                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                                    transaction.Rollback();
-                                                    return;
-                                                }
+                                                transaction.Rollback();
+                                                return;
                                             }
+                                            // --- MODIFICATION END ---
                                         }
-                                        // --- END OF CRITICAL FIX #1 ---
-
                                     }
                                     else
                                     {
                                         // Unit does not exist, create it
                                         string insertUnitQuery = @"
-                                    INSERT INTO TBL_Units (UnitNumber, Block, UnitType, IsOccupied, TotalRooms, AvailableRooms)
-                                    VALUES (@unitNumber, @block, @unitType, @isOccupied, @totalRooms, @availableRooms);
-                                    SELECT SCOPE_IDENTITY();";
+                                        INSERT INTO TBL_Units (UnitNumber, Block, UnitType, IsOccupied, TotalRooms, AvailableRooms)
+                                        VALUES (@unitNumber, @block, @unitType, @isOccupied, @totalRooms, @availableRooms);
+                                        SELECT SCOPE_IDENTITY();";
 
                                         using (SqlCommand insertUnitCmd = new SqlCommand(insertUnitQuery, conn, transaction))
                                         {
@@ -457,9 +435,9 @@ namespace RECOMANAGESYS
                                 if (unitTypeText == "Apartment" && _residencyType == "Tenant")
                                 {
                                     string checkAvailabilityQuery = @"
-                                SELECT AvailableRooms, TotalRooms
-                                FROM TBL_Units
-                                WHERE UnitID = @unitId";
+                                    SELECT AvailableRooms, TotalRooms
+                                    FROM TBL_Units
+                                    WHERE UnitID = @unitId";
 
                                     using (SqlCommand checkCmd = new SqlCommand(checkAvailabilityQuery, conn, transaction))
                                     {
@@ -493,13 +471,13 @@ namespace RECOMANAGESYS
                                 }
 
                                 string verifyOwnershipQuery = @"
-                            SELECT COUNT(*)
-                            FROM HomeownerUnits hu
-                            INNER JOIN Residents r ON hu.ResidentID = r.ResidentID
-                            WHERE hu.UnitID = @unitId
-                              AND r.HomeownerID = @homeownerId
-                              AND r.ResidencyType = 'Owner'
-                              AND hu.IsCurrent = 1";
+                                SELECT COUNT(*)
+                                FROM HomeownerUnits hu
+                                INNER JOIN Residents r ON hu.ResidentID = r.ResidentID
+                                WHERE hu.UnitID = @unitId
+                                  AND r.HomeownerID = @homeownerId
+                                  AND r.ResidencyType = 'Owner'
+                                  AND hu.IsCurrent = 1";
 
                                 using (SqlCommand verifyCmd = new SqlCommand(verifyOwnershipQuery, conn, transaction))
                                 {
@@ -535,14 +513,14 @@ namespace RECOMANAGESYS
                             if (_residencyType == "Owner")
                             {
                                 insertJunctionQuery = @"
-                            INSERT INTO HomeownerUnits (ResidentID, UnitID, DateOfOwnership, ApprovedByUserID, IsCurrent)
-                            VALUES (@residentId, @unitId, @dateOfOwnership, @ApprovedByUserID, 1)";
+                                INSERT INTO HomeownerUnits (ResidentID, UnitID, DateOfOwnership, ApprovedByUserID, IsCurrent)
+                                VALUES (@residentId, @unitId, @dateOfOwnership, @ApprovedByUserID, 1)";
                             }
                             else
                             {
                                 insertJunctionQuery = @"
-                            INSERT INTO HomeownerUnits (ResidentID, UnitID, IsCurrent)
-                            VALUES (@residentId, @unitId, 1)";
+                                INSERT INTO HomeownerUnits (ResidentID, UnitID, IsCurrent)
+                                VALUES (@residentId, @unitId, 1)";
                             }
 
                             using (SqlCommand insertJunctionCmd = new SqlCommand(insertJunctionQuery, conn, transaction))
@@ -567,9 +545,9 @@ namespace RECOMANAGESYS
                             if (_residencyType != "Owner" && unitTypeText == "Apartment")
                             {
                                 string updateRoomsQuery = @"
-                            UPDATE TBL_Units
-                            SET AvailableRooms = AvailableRooms - 1
-                            WHERE UnitID = @unitId";
+                                UPDATE TBL_Units
+                                SET AvailableRooms = AvailableRooms - 1
+                                WHERE UnitID = @unitId";
 
                                 using (SqlCommand updateRoomsCmd = new SqlCommand(updateRoomsQuery, conn, transaction))
                                 {
@@ -600,9 +578,9 @@ namespace RECOMANAGESYS
                             if (innerEx.Message.Contains("UQ_Active_Resident_Unit"))
                             {
                                 MessageBox.Show(
-                                   "This resident is already the *current* owner or tenant of this unit.",
-                                   "Duplicate Registration",
-                                   MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    "This resident is already the *current* owner or tenant of this unit.",
+                                    "Duplicate Registration",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                             else
                             {
@@ -619,7 +597,6 @@ namespace RECOMANAGESYS
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
 
 
         private void Cancelbtn_Click(object sender, EventArgs e)

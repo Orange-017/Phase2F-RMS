@@ -56,10 +56,10 @@ namespace RECOMANAGESYS
                 {
                     conn.Open();
                     string query = @"
-                SELECT r.RoleId, r.RoleName
-                FROM TBL_Roles r
-                LEFT JOIN Users u ON r.RoleId = u.RoleId AND u.IsActive = 1
-                WHERE (u.UserID IS NULL OR r.RoleName = 'Member')";
+                        SELECT r.RoleId, r.RoleName
+                        FROM TBL_Roles r
+                        LEFT JOIN Users u ON r.RoleId = u.RoleId AND u.IsActive = 1
+                        WHERE (u.UserID IS NULL OR r.RoleName = 'Member')";
 
                     if (!CurrentUser.Role.Equals("Developer", StringComparison.OrdinalIgnoreCase))
                     {
@@ -101,7 +101,7 @@ namespace RECOMANAGESYS
                 RegistrationSuccess?.Invoke(this, EventArgs.Empty);
 
                 ClearForm();
-                this.Hide();
+                this.Close();
             }
             catch (InvalidOperationException ioe)
             {
@@ -155,25 +155,28 @@ namespace RECOMANAGESYS
                 txtConfirmpass.Focus();
                 return false;
             }
-
-            if (!Regex.IsMatch(pass, @"[a-zA-Z]") ||
-                !Regex.IsMatch(pass, @"[A-Z]") ||
-                !Regex.IsMatch(pass, @"[0-9]") ||
-                pass.Length < MinimumPasswordLength)
+            if (!Regex.IsMatch(pass, @"[a-z]")) 
             {
-                MessageBox.Show("Password does not meet complexity requirements:\n" +
-                    "• At least one letter\n" +
-                    "• At least one uppercase letter\n" +
-                    "• At least one number\n" +
-                    $"• At least {MinimumPasswordLength} characters",
-                    "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Password must contain at least one lowercase letter.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtPass.Focus();
                 return false;
             }
-            if (pass != confirm)
+            if (!Regex.IsMatch(pass, @"[A-Z]")) 
             {
-                MessageBox.Show("Passwords do not match.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtConfirmpass.Focus();
+                MessageBox.Show("Password must contain at least one uppercase letter.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtPass.Focus();
+                return false;
+            }
+            if (!Regex.IsMatch(pass, @"[0-9]"))
+            {
+                MessageBox.Show("Password must contain at least one number.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtPass.Focus();
+                return false;
+            }
+            if (pass.Length < MinimumPasswordLength)
+            {
+                MessageBox.Show($"Password must be at least {MinimumPasswordLength} characters long.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtPass.Focus();
                 return false;
             }
 
@@ -193,18 +196,22 @@ namespace RECOMANAGESYS
 
             // Emails
             string email = txtEmail.Text.Trim();
+            Regex emailRegex = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+
             if (string.IsNullOrWhiteSpace(email))
             {
                 MessageBox.Show("Personal email is required and cannot be just spaces.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtEmail.Focus();
                 return false;
             }
-            if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            if (!emailRegex.IsMatch(email))
             {
-                MessageBox.Show("Please enter a valid personal email address.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please enter a valid personal email address (e.g., name@example.com).", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtEmail.Focus();
                 return false;
             }
+
+            // HOA Email
 
             string loginEmail = LoginEmailtxt.Text.Trim();
             if (string.IsNullOrWhiteSpace(loginEmail))
@@ -213,12 +220,13 @@ namespace RECOMANAGESYS
                 LoginEmailtxt.Focus();
                 return false;
             }
-            if (!Regex.IsMatch(loginEmail, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            if (!emailRegex.IsMatch(loginEmail))
             {
-                MessageBox.Show("Please enter a valid HOA email address.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please enter a valid HOA email address (e.g., hoa@example.com).", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 LoginEmailtxt.Focus();
                 return false;
             }
+
 
             // Contact number
             string contact = txtContactnum.Text.Trim();
@@ -261,18 +269,27 @@ namespace RECOMANAGESYS
                 return false;
             }
 
-            // MemberSince / Date
+
             if (DTPProfile != null)
             {
-                DateTime dt = DTPProfile.Value;
-                if (dt > DateTime.Now.AddMonths(1))
+                DateTime selectedDate = DTPProfile.Value.Date;
+                DateTime today = DateTime.Now.Date;
+                DateTime minAllowedDate = today.AddYears(-2);
+
+                if (selectedDate > today)
                 {
-                    MessageBox.Show("Member since date is invalid.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("The 'Member Since' date cannot be in the future.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    DTPProfile.Focus();
+                    return false;
+                }
+
+                if (selectedDate < minAllowedDate)
+                {
+                    MessageBox.Show("The 'Member Since' date cannot be more than 2 years ago. Please verify the election period.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     DTPProfile.Focus();
                     return false;
                 }
             }
-
             //Profile picture validations
             if (profilePictureData == null)
             {
@@ -332,14 +349,14 @@ namespace RECOMANAGESYS
                 conn.Open();
 
                 string query = @"
-            INSERT INTO Users 
-            (Username, PasswordHash, Firstname, Lastname, MiddleName, RoleId, 
-             CompleteAddress, ContactNumber, EmailAddress, LoginEmail, MemberSince, 
-             ProfilePicture, IsActive) 
-            VALUES 
-            (@username, @password_hash, @firstName, @lastName, @middleName, 
-             @roleId, @address, @contactNumber, @email, @LoginEmail, @memberSince, 
-              @profilePicture, @isActive)";
+                    INSERT INTO Users 
+                    (Username, PasswordHash, Firstname, Lastname, MiddleName, RoleId, 
+                     CompleteAddress, ContactNumber, EmailAddress, LoginEmail, MemberSince, 
+                     ProfilePicture, IsActive) 
+                    VALUES 
+                    (@username, @password_hash, @firstName, @lastName, @middleName, 
+                     @roleId, @address, @contactNumber, @email, @LoginEmail, @memberSince, 
+                      @profilePicture, @isActive)";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -356,9 +373,7 @@ namespace RECOMANAGESYS
                     }
                     cmd.Parameters.AddWithValue("@roleId", roleId);
 
-                    // *** UPDATED: Removed DBNull check since address is now required ***
                     cmd.Parameters.AddWithValue("@address", txtAddress.Text.Trim());
-                    // *** END UPDATE ***
 
                     cmd.Parameters.AddWithValue("@contactNumber", txtContactnum.Text.Trim());
                     cmd.Parameters.AddWithValue("@email", txtEmail.Text.Trim());

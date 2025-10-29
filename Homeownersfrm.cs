@@ -546,28 +546,29 @@ namespace RECOMANAGESYS
                     }
 
                     string query = @"
-                            SELECT 
-                                tu.UnitNumber,
-                                tu.Block,
-                                tu.UnitType,
-                                MIN(CASE WHEN r.ResidencyType = 'Owner' THEN hu.DateOfOwnership END) AS [Start Date],
-                                MAX(CASE WHEN r.ResidencyType = 'Owner' THEN hu.DateOfOwnershipEnd END) AS [End Date],
-                                MAX(CASE WHEN r.ResidencyType = 'Owner' THEN CONCAT(r.FirstName, ' ', r.LastName) END) AS [Owner Name],
-                                STRING_AGG(
-                                    CASE WHEN r.ResidencyType IN ('Tenant', 'Caretaker') 
-                                         THEN CONCAT(r.FirstName, ' ', r.LastName, ' (', r.ResidencyType, ')') 
-                                         ELSE NULL END, 
-                                    CHAR(13) + CHAR(10)
-                                ) AS [Residents (Tenants/Caretakers)],
-                                MAX(CASE WHEN r.ResidencyType = 'Owner' 
-                                         THEN ISNULL(u.Lastname, '') + ' ' + ISNULL(u.Firstname, '') END) AS [Approved By]
-                            FROM TBL_Units tu
-                            INNER JOIN HomeownerUnits hu ON tu.UnitID = hu.UnitID
-                            INNER JOIN Residents r ON hu.ResidentID = r.ResidentID
-                            LEFT JOIN Users u ON hu.ApprovedByUserID = u.UserID
-                            WHERE r.HomeownerID = @homeownerId
-                            GROUP BY tu.UnitID, tu.UnitNumber, tu.Block, tu.UnitType
-                            ORDER BY TRY_CAST(tu.UnitNumber AS INT), tu.UnitNumber;";
+                        SELECT 
+                            tu.UnitNumber,
+                            tu.Block,
+                            tu.UnitType,
+                            MIN(CASE WHEN r.ResidencyType = 'Owner' THEN hu.DateOfOwnership END) AS [Start Date],
+                            MAX(CASE WHEN r.ResidencyType = 'Owner' THEN hu.DateOfOwnershipEnd END) AS [End Date],
+                            MAX(CASE WHEN r.ResidencyType = 'Owner' THEN CONCAT(r.FirstName, ' ', r.LastName) END) AS [Owner Name],
+                            STRING_AGG(
+                                CASE WHEN r.ResidencyType IN ('Tenant', 'Caretaker') 
+                                     THEN CONCAT(r.FirstName, ' ', r.LastName, ' (', r.ResidencyType, ')', 
+                                                 CHAR(13) + CHAR(10) + '-----------------' + CHAR(13) + CHAR(10))
+                                     ELSE NULL END, 
+                                ''
+                            ) AS [Residents (Tenants/Caretakers)],
+                            MAX(CASE WHEN r.ResidencyType = 'Owner' 
+                                     THEN ISNULL(u.Lastname, '') + ' ' + ISNULL(u.Firstname, '') END) AS [Approved By]
+                        FROM TBL_Units tu
+                        INNER JOIN HomeownerUnits hu ON tu.UnitID = hu.UnitID
+                        INNER JOIN Residents r ON hu.ResidentID = r.ResidentID
+                        LEFT JOIN Users u ON hu.ApprovedByUserID = u.UserID
+                        WHERE r.HomeownerID = @homeownerId
+                        GROUP BY tu.UnitID, tu.UnitNumber, tu.Block, tu.UnitType
+                        ORDER BY TRY_CAST(tu.UnitNumber AS INT), tu.UnitNumber;";
 
                     SqlCommand cmd = new SqlCommand(query, conn);
                     cmd.Parameters.AddWithValue("@homeownerId", homeownerId);
