@@ -237,16 +237,17 @@
             // 
             // lblRole
             // 
-            this.lblRole.AutoSize = true;
+            this.lblRole.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.lblRole.BackColor = System.Drawing.Color.Transparent;
             this.lblRole.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblRole.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.lblRole.Location = new System.Drawing.Point(91, 154);
+            this.lblRole.Location = new System.Drawing.Point(91, 152);
             this.lblRole.Name = "lblRole";
             this.lblRole.Size = new System.Drawing.Size(76, 23);
             this.lblRole.TabIndex = 0;
             this.lblRole.Text = "Position";
-            this.lblRole.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.lblRole.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.lblRole.Click += new System.EventHandler(this.lblRole_Click);
             // 
             // lblName
             // 
@@ -255,18 +256,18 @@
             this.lblName.Font = new System.Drawing.Font("Microsoft YaHei UI", 10.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblName.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.lblName.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.lblName.Location = new System.Drawing.Point(75, 130);
+            this.lblName.Location = new System.Drawing.Point(75, 127);
             this.lblName.Name = "lblName";
             this.lblName.Size = new System.Drawing.Size(134, 25);
             this.lblName.TabIndex = 0;
             this.lblName.Text = "Name --------";
-            this.lblName.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.lblName.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // ProfilePicDB
             // 
             this.ProfilePicDB.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("ProfilePicDB.BackgroundImage")));
             this.ProfilePicDB.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ProfilePicDB.Location = new System.Drawing.Point(79, 8);
+            this.ProfilePicDB.Location = new System.Drawing.Point(80, 5);
             this.ProfilePicDB.Name = "ProfilePicDB";
             this.ProfilePicDB.Size = new System.Drawing.Size(136, 119);
             this.ProfilePicDB.TabIndex = 0;

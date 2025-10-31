@@ -59,6 +59,7 @@ namespace RECOMANAGESYS
         {
             lblName.Text = loginform.CurrentUser.FullName;
             lblRole.Text = loginform.CurrentUser.Role;
+            CenterLabelsUnderProfile();
 
             dash = new dashboardControl();
             dues = new monthdues();
@@ -89,6 +90,21 @@ namespace RECOMANAGESYS
             homeowners.MonthDuesControl = dues;
 
             EnforcePermissions();
+        }
+        private void CenterLabelsUnderProfile()
+        {
+            lblName.AutoSize = true;
+            lblRole.AutoSize = true;
+
+            lblName.Left = ProfilePicDB.Left + (ProfilePicDB.Width - lblName.Width) / 2;
+            lblName.Top = ProfilePicDB.Bottom + 5; 
+
+            lblRole.Left = ProfilePicDB.Left + (ProfilePicDB.Width - lblRole.Width) / 2;
+            lblRole.Top = lblName.Bottom + 3; 
+        }
+        private void dashboard_Resize(object sender, EventArgs e)
+        {
+            CenterLabelsUnderProfile();
         }
 
         private void EnforcePermissions()
@@ -228,6 +244,21 @@ namespace RECOMANAGESYS
                 case "Garbage":
                     sched.ShowGarbageScheduleTab();
                     break;
+            }
+        }
+
+        private void lblRole_Click(object sender, EventArgs e)
+        {
+           
+
+        }
+        protected override CreateParams CreateParams //minimize using the taskbar
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.Style |= 0x20000;
+                return cp;
             }
         }
     }
