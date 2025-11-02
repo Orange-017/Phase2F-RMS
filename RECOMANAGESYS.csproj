@@ -17,7 +17,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>C:\Users\daniela\Downloads\RecordManagementSystem%28Phase2F%29\</PublishUrl>
+    <PublishUrl>C:\Users\daniela\OneDrive\RecordManageSystem\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Unc</InstallFrom>
     <UpdateEnabled>true</UpdateEnabled>
@@ -27,8 +27,8 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <InstallUrl>\\LAPTOP-FT905FTC\Users\daniela\Downloads\RecordManagementSystem%28Phase2F%29\</InstallUrl>
-    <ApplicationRevision>1</ApplicationRevision>
+    <InstallUrl>\\LAPTOP-FT905FTC\Users\daniela\OneDrive\RecordManageSystem\</InstallUrl>
+    <ApplicationRevision>3</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
